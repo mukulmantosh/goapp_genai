@@ -1,17 +1,12 @@
 package models
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
-	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 	"log"
 )
-
-type StreamingOutputHandler func(ctx context.Context, part []byte) error
 
 type Llama2Request struct {
 	Prompt       string  `json:"prompt"`
@@ -48,37 +43,37 @@ func (wrapper InvokeModelStreamingWrapper) InvokeLlama2Stream(prompt string) (*b
 	return output, nil
 }
 
-func ProcessStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Llama2Response, error) {
-
-	var combinedResult string
-	resp := Llama2Response{}
-
-	for event := range output.GetStream().Events() {
-		switch v := event.(type) {
-		case *types.ResponseStreamMemberChunk:
-
-			var resp Llama2Response
-			err := json.NewDecoder(bytes.NewReader(v.Value.Bytes)).Decode(&resp)
-			if err != nil {
-				return resp, err
-			}
-
-			err = handler(context.Background(), []byte(resp.Generation))
-			if err != nil {
-				return resp, err
-			}
-
-			combinedResult += resp.Generation
-
-		case *types.UnknownUnionMember:
-			fmt.Println("unknown tag:", v.Tag)
-
-		default:
-			fmt.Println("union is nil or unknown type")
-		}
-	}
-
-	resp.Generation = combinedResult
-
-	return resp, nil
-}
+//func ProcessStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Llama2Response, error) {
+//
+//	var combinedResult string
+//	resp := Llama2Response{}
+//
+//	for event := range output.GetStream().Events() {
+//		switch v := event.(type) {
+//		case *types.ResponseStreamMemberChunk:
+//
+//			err := json.NewDecoder(bytes.NewReader(v.Value.Bytes)).Decode(&resp)
+//			if err != nil {
+//				return resp, err
+//			}
+//
+//			err = handler(context.Background(), []byte(resp.Generation))
+//			if err != nil {
+//				return resp, err
+//			}
+//
+//			combinedResult += resp.Generation
+//
+//		case *types.UnknownUnionMember:
+//			fmt.Println("unknown tag:", v.Tag)
+//
+//		default:
+//			fmt.Println("union is nil or unknown type")
+//		}
+//	}
+//
+//	resp.Generation = combinedResult
+//
+//	return resp, nil
+//
+//}
