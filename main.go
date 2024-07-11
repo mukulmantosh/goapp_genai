@@ -17,16 +17,16 @@ var websocketUpgrade = websocket.Upgrader{
 	},
 }
 
-type ModelStreamingWrapper struct {
-	wrapper models.InvokeModelStreamingWrapper
+type MLWrapper struct {
+	wrapper models.ModelWrapper
 }
 
 func main() {
 
 	cfg := loadConfig()
 	brc := bedrockruntime.NewFromConfig(cfg)
-	modelWrapper := models.InvokeModelStreamingWrapper{BedrockRuntimeClient: brc}
-	wrapper := ModelStreamingWrapper{modelWrapper}
+	modelWrapper := models.ModelWrapper{BedrockRuntimeClient: brc}
+	wrapper := MLWrapper{modelWrapper}
 
 	http.HandleFunc("/ws/model", wrapper.executeModel)
 

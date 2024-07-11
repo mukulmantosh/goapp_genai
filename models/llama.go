@@ -29,7 +29,7 @@ func (r Llama2Response) GetContent() string {
 	return r.Generation
 }
 
-func (wrapper InvokeModelStreamingWrapper) InvokeLlama2Stream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+func (wrapper ModelWrapper) InvokeLlama2Stream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 	modelId := "meta.llama3-70b-instruct-v1:0"
 
 	body, err := json.Marshal(Llama2Request{
@@ -52,6 +52,37 @@ func (wrapper InvokeModelStreamingWrapper) InvokeLlama2Stream(prompt string) (*b
 		ProcessError(err, modelId)
 	}
 	return output, nil
+}
+
+func (wrapper ModelWrapper) InvokeLlama2(prompt string) (string, error) {
+	modelId := "meta.llama3-70b-instruct-v1:0"
+
+	body, err := json.Marshal(Llama2Request{
+		Prompt:       prompt,
+		MaxGenLength: 512,
+		Temperature:  0.5,
+	})
+
+	if err != nil {
+		log.Fatal("failed to marshal", err)
+	}
+
+	output, err := wrapper.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
+		ModelId:     aws.String(modelId),
+		ContentType: aws.String("application/json"),
+		Body:        body,
+	})
+
+	if err != nil {
+		ProcessError(err, modelId)
+	}
+
+	var response Llama2Response
+	if err := json.Unmarshal(output.Body, &response); err != nil {
+		log.Fatal("failed to unmarshal", err)
+	}
+
+	return response.Generation, nil
 }
 
 func ProcessLlamaStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Llama2Response, error) {

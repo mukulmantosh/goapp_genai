@@ -94,7 +94,7 @@ func (r Claude3Response) GetContent() string {
 	return r.ResponseContent[0].Text
 }
 
-func (wrapper InvokeModelStreamingWrapper) InvokeLAnthropicStream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+func (wrapper ModelWrapper) InvokeLAnthropicStream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 	payload := Claude3Request{
 		AnthropicVersion: "bedrock-2023-05-31",
 		MaxTokens:        1024,
