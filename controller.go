@@ -9,7 +9,7 @@ import (
 )
 
 func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
-	modelName := "llama3"
+	modelName := r.URL.Query().Get("model")
 	streaming := StringToBool(r.URL.Query().Get("streaming"))
 
 	conn, err := websocketUpgrade.Upgrade(w, r, nil)
