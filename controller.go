@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"goapp_genai/models"
 
 	"log"
@@ -11,8 +10,7 @@ import (
 
 func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
 	modelName := "llama3"
-	streaming := r.Header.Get("streaming")
-	fmt.Println(streaming)
+	streaming := StringToBool(r.URL.Query().Get("streaming"))
 
 	conn, err := websocketUpgrade.Upgrade(w, r, nil)
 	if err != nil {
@@ -26,7 +24,7 @@ func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
 			log.Println("Error reading message:", err)
 			return
 		}
-		if streaming == "1" {
+		if streaming {
 			aiResponse, err := m.wrapper.LoadStreamingModel(modelName, string(msg))
 
 			processFunc := func(ctx context.Context, part []byte) error {
