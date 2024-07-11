@@ -10,3 +10,10 @@ type InvokeModelStreamingWrapper struct {
 }
 
 type StreamingOutputHandler func(ctx context.Context, part []byte) error
+
+type ProcessingFunction func(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (any, error)
+
+type GenericResponse interface {
+	SetContent(content string)
+	GetContent() string
+}

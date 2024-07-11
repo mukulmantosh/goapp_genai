@@ -87,6 +87,13 @@ const partialResponseTypeMessageDelta = "message_delta"
 
 const contentTypeText = "text"
 
+func (r Claude3Response) SetContent(content string) {
+	r.ResponseContent[0].Text = content
+}
+func (r Claude3Response) GetContent() string {
+	return r.ResponseContent[0].Text
+}
+
 func (wrapper InvokeModelStreamingWrapper) InvokeLAnthropicStream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 	payload := Claude3Request{
 		AnthropicVersion: "bedrock-2023-05-31",
@@ -122,7 +129,7 @@ func (wrapper InvokeModelStreamingWrapper) InvokeLAnthropicStream(prompt string)
 
 }
 
-func ProcessStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Claude3Response, error) {
+func ProcessAnthropicStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Claude3Response, error) {
 
 	var combinedResult string
 	resp := Claude3Response{
@@ -160,6 +167,6 @@ func ProcessStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStream
 		}
 	}
 
-	resp.ResponseContent[0].Text = combinedResult
+	resp.SetContent(combinedResult)
 	return resp, nil
 }

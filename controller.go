@@ -8,6 +8,7 @@ import (
 )
 
 func (model ModelStreamingWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
+	modelName := "anthropic"
 
 	conn, err := websocketUpgrade.Upgrade(w, r, nil)
 	if err != nil {
@@ -22,7 +23,7 @@ func (model ModelStreamingWrapper) executeModel(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		aiResponse, err := model.wrapper.InvokeLAnthropicStream(string(msg))
+		aiResponse, err := model.wrapper.LoadModel(modelName, string(msg))
 
 		processFunc := func(ctx context.Context, part []byte) error {
 			err = conn.WriteMessage(msgType, part)
@@ -33,7 +34,7 @@ func (model ModelStreamingWrapper) executeModel(w http.ResponseWriter, r *http.R
 			return nil
 		}
 
-		_, err = models.ProcessStreamingOutput(aiResponse, processFunc)
+		_, err = models.CallStreamingOutputFunction(modelName, aiResponse, processFunc)
 		if err != nil {
 			log.Fatal("streaming output processing error: ", err)
 		}
