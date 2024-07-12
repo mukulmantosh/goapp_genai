@@ -7,7 +7,7 @@ import (
 
 func (wrapper ModelWrapper) LoadStreamingModel(modelName string, prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 	if modelName == anthropic {
-		return wrapper.InvokeLAnthropicStream(prompt)
+		return wrapper.InvokeAnthropicStream(prompt)
 	} else if modelName == llama3 {
 		return wrapper.InvokeLlama2Stream(prompt)
 	}
@@ -17,6 +17,8 @@ func (wrapper ModelWrapper) LoadStreamingModel(modelName string, prompt string) 
 func (wrapper ModelWrapper) LoadModel(modelName string, prompt string) (string, error) {
 	if modelName == llama3 {
 		return wrapper.InvokeLlama2(prompt)
+	} else if modelName == anthropic {
+		return wrapper.InvokeAnthropic(prompt)
 	}
 	return "", fmt.Errorf("unsupported model: %s", modelName)
 }

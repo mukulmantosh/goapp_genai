@@ -94,7 +94,7 @@ func (r Claude3Response) GetContent() string {
 	return r.ResponseContent[0].Text
 }
 
-func (wrapper ModelWrapper) InvokeLAnthropicStream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+func (wrapper ModelWrapper) Body(prompt string) []byte {
 	payload := Claude3Request{
 		AnthropicVersion: "bedrock-2023-05-31",
 		MaxTokens:        1024,
@@ -115,6 +115,11 @@ func (wrapper ModelWrapper) InvokeLAnthropicStream(prompt string) (*bedrockrunti
 	if err != nil {
 		log.Fatal(err)
 	}
+	return body
+}
+
+func (wrapper ModelWrapper) InvokeAnthropicStream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+	body := wrapper.Body(prompt)
 
 	output, err := wrapper.BedrockRuntimeClient.InvokeModelWithResponseStream(context.TODO(), &bedrockruntime.InvokeModelWithResponseStreamInput{
 		ModelId:     aws.String(claudeV3ModelID),
@@ -127,6 +132,29 @@ func (wrapper ModelWrapper) InvokeLAnthropicStream(prompt string) (*bedrockrunti
 	}
 	return output, nil
 
+}
+
+func (wrapper ModelWrapper) InvokeAnthropic(prompt string) (string, error) {
+	body := wrapper.Body(prompt)
+
+	output, err := wrapper.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
+		ModelId:     aws.String(claudeV3ModelID),
+		ContentType: aws.String("application/json"),
+		Body:        body,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var resp Claude3Response
+
+	err = json.Unmarshal(output.Body, &resp)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return resp.ResponseContent[0].Text, nil
 }
 
 func ProcessAnthropicStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Claude3Response, error) {

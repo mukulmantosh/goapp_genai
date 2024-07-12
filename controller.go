@@ -17,6 +17,7 @@ func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
 		log.Println("Failed to set websocket upgrade:", err)
 		return
 	}
+	defer conn.Close()
 
 	for {
 		msgType, msg, err := conn.ReadMessage()
