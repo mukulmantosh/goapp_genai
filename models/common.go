@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	llama3    = "llama3"
-	anthropic = "anthropic"
+	llama3        = "llama3"
+	anthropic     = "anthropic"
+	Llama3modelId = "meta.llama3-70b-instruct-v1:0"
 )
 
 func CallStreamingOutputFunction(llm string, output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (interface{}, error) {
