@@ -9,14 +9,14 @@ func (wrapper ModelWrapper) LoadStreamingModel(modelName string, prompt string) 
 	if modelName == anthropic {
 		return wrapper.InvokeAnthropicStream(prompt)
 	} else if modelName == llama3 {
-		return wrapper.InvokeLlama2Stream(prompt)
+		return wrapper.InvokeLlama3Stream(prompt)
 	}
 	return nil, fmt.Errorf("unsupported model: %s", modelName)
 }
 
 func (wrapper ModelWrapper) LoadModel(modelName string, prompt string) (string, error) {
 	if modelName == llama3 {
-		return wrapper.InvokeLlama2(prompt)
+		return wrapper.InvokeLlama3(prompt)
 	} else if modelName == anthropic {
 		return wrapper.InvokeAnthropic(prompt)
 	}

@@ -11,26 +11,26 @@ import (
 	"log"
 )
 
-type Llama2Request struct {
+type Llama3Request struct {
 	Prompt       string  `json:"prompt"`
 	MaxGenLength int     `json:"max_gen_len,omitempty"`
 	Temperature  float64 `json:"temperature,omitempty"`
 }
 
-type Llama2Response struct {
+type Llama3Response struct {
 	Generation string `json:"generation"`
 }
 
-func (r Llama2Response) SetContent(content string) {
+func (r Llama3Response) SetContent(content string) {
 	r.Generation = content
 }
 
-func (r Llama2Response) GetContent() string {
+func (r Llama3Response) GetContent() string {
 	return r.Generation
 }
 
 func (wrapper ModelWrapper) LlamaBody(prompt string) []byte {
-	body, err := json.Marshal(Llama2Request{
+	body, err := json.Marshal(Llama3Request{
 		Prompt:       prompt,
 		MaxGenLength: 200,
 		Temperature:  0.5,
@@ -42,7 +42,7 @@ func (wrapper ModelWrapper) LlamaBody(prompt string) []byte {
 	return body
 }
 
-func (wrapper ModelWrapper) InvokeLlama2Stream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+func (wrapper ModelWrapper) InvokeLlama3Stream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 
 	output, err := wrapper.BedrockRuntimeClient.InvokeModelWithResponseStream(context.TODO(), &bedrockruntime.InvokeModelWithResponseStreamInput{
 		ModelId:     aws.String(Llama3modelId),
@@ -56,7 +56,7 @@ func (wrapper ModelWrapper) InvokeLlama2Stream(prompt string) (*bedrockruntime.I
 	return output, nil
 }
 
-func (wrapper ModelWrapper) InvokeLlama2(prompt string) (string, error) {
+func (wrapper ModelWrapper) InvokeLlama3(prompt string) (string, error) {
 	modelId := "meta.llama3-70b-instruct-v1:0"
 
 	output, err := wrapper.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
@@ -69,7 +69,7 @@ func (wrapper ModelWrapper) InvokeLlama2(prompt string) (string, error) {
 		ProcessError(err, modelId)
 	}
 
-	var response Llama2Response
+	var response Llama3Response
 	if err := json.Unmarshal(output.Body, &response); err != nil {
 		log.Fatal("failed to unmarshal", err)
 	}
@@ -77,10 +77,10 @@ func (wrapper ModelWrapper) InvokeLlama2(prompt string) (string, error) {
 	return response.Generation, nil
 }
 
-func ProcessLlamaStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Llama2Response, error) {
+func ProcessLlamaStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Llama3Response, error) {
 
 	var combinedResult string
-	resp := Llama2Response{}
+	resp := Llama3Response{}
 
 	for event := range output.GetStream().Events() {
 		switch v := event.(type) {
