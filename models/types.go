@@ -14,14 +14,17 @@ type LLM interface {
 	Stream() (*bedrockruntime.InvokeModelWithResponseStreamOutput, error)
 }
 
-type Llama struct {
+type LLMPrompt struct {
 	bedrock ModelWrapper
 	prompt  string
 }
 
+type Llama struct {
+	LLMPrompt
+}
+
 type Anthropic struct {
-	bedrock ModelWrapper
-	prompt  string
+	LLMPrompt
 }
 
 type StreamingOutputHandler func(ctx context.Context, part []byte) error

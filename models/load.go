@@ -8,14 +8,14 @@ import (
 func (wrapper ModelWrapper) LoadStreamingModel(modelName string, prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 	switch modelName {
 	case llama3:
-		llama := Llama{bedrock: wrapper, prompt: prompt}
+		llama := Llama{LLMPrompt{wrapper, prompt}}
 		response, err := llama.Stream()
 		if err != nil {
 			return nil, err
 		}
 		return response, nil
 	case anthropic:
-		anth := Anthropic{bedrock: wrapper, prompt: prompt}
+		anth := Anthropic{LLMPrompt{wrapper, prompt}}
 		response, err := anth.Stream()
 		if err != nil {
 			return nil, err
@@ -29,14 +29,14 @@ func (wrapper ModelWrapper) LoadStreamingModel(modelName string, prompt string) 
 func (wrapper ModelWrapper) LoadModel(modelName string, prompt string) (string, error) {
 	switch modelName {
 	case llama3:
-		llama := Llama{bedrock: wrapper, prompt: prompt}
+		llama := Llama{LLMPrompt{wrapper, prompt}}
 		response, err := llama.Invoke()
 		if err != nil {
 			return "", err
 		}
 		return response, nil
 	case anthropic:
-		anth := Anthropic{bedrock: wrapper, prompt: prompt}
+		anth := Anthropic{LLMPrompt{wrapper, prompt}}
 		response, err := anth.Invoke()
 		if err != nil {
 			return "", err
