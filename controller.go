@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"goapp_genai/models"
-
 	"log"
 	"net/http"
 )
@@ -26,6 +25,7 @@ func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if streaming {
+
 			aiResponse, err := m.wrapper.LoadStreamingModel(modelName, string(msg))
 
 			processFunc := func(ctx context.Context, part []byte) error {
@@ -42,12 +42,8 @@ func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
 				log.Fatal("streaming output processing error: ", err)
 			}
 		} else {
-			aiResponse, err := m.wrapper.LoadModel(modelName, string(msg))
-			if err != nil {
-				log.Fatal("streaming output processing error: ", err)
-			}
-
-			err = conn.WriteMessage(msgType, []byte(aiResponse))
+			modelResponse, err := m.wrapper.LoadModel(modelName, string(msg))
+			err = conn.WriteMessage(msgType, []byte(modelResponse))
 			if err != nil {
 				log.Println("Error writing to websocket:", err)
 				return

@@ -1,24 +1,48 @@
 package models
 
 import (
-	"fmt"
+	"errors"
 	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
 )
 
 func (wrapper ModelWrapper) LoadStreamingModel(modelName string, prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
-	if modelName == anthropic {
-		return wrapper.InvokeAnthropicStream(prompt)
-	} else if modelName == llama3 {
-		return wrapper.InvokeLlama3Stream(prompt)
+	switch modelName {
+	case llama3:
+		llama := Llama{bedrock: wrapper, prompt: prompt}
+		response, err := llama.Stream()
+		if err != nil {
+			return nil, err
+		}
+		return response, nil
+	case anthropic:
+		anth := Anthropic{bedrock: wrapper, prompt: prompt}
+		response, err := anth.Stream()
+		if err != nil {
+			return nil, err
+		}
+		return response, nil
+	default:
+		return nil, errors.New("No such model: " + modelName)
 	}
-	return nil, fmt.Errorf("unsupported model: %s", modelName)
 }
 
 func (wrapper ModelWrapper) LoadModel(modelName string, prompt string) (string, error) {
-	if modelName == llama3 {
-		return wrapper.InvokeLlama3(prompt)
-	} else if modelName == anthropic {
-		return wrapper.InvokeAnthropic(prompt)
+	switch modelName {
+	case llama3:
+		llama := Llama{bedrock: wrapper, prompt: prompt}
+		response, err := llama.Invoke()
+		if err != nil {
+			return "", err
+		}
+		return response, nil
+	case anthropic:
+		anth := Anthropic{bedrock: wrapper, prompt: prompt}
+		response, err := anth.Invoke()
+		if err != nil {
+			return "", err
+		}
+		return response, nil
+	default:
+		return "", errors.New("No such model: " + modelName)
 	}
-	return "", fmt.Errorf("unsupported model: %s", modelName)
 }

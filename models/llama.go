@@ -29,7 +29,7 @@ func (r Llama3Response) GetContent() string {
 	return r.Generation
 }
 
-func (wrapper ModelWrapper) LlamaBody(prompt string) []byte {
+func (wrapper Llama) LlamaBody(prompt string) []byte {
 	body, err := json.Marshal(Llama3Request{
 		Prompt:       prompt,
 		MaxGenLength: 200,
@@ -42,12 +42,12 @@ func (wrapper ModelWrapper) LlamaBody(prompt string) []byte {
 	return body
 }
 
-func (wrapper ModelWrapper) InvokeLlama3Stream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+func (wrapper Llama) Stream() (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
 
-	output, err := wrapper.BedrockRuntimeClient.InvokeModelWithResponseStream(context.TODO(), &bedrockruntime.InvokeModelWithResponseStreamInput{
+	output, err := wrapper.bedrock.BedrockRuntimeClient.InvokeModelWithResponseStream(context.TODO(), &bedrockruntime.InvokeModelWithResponseStreamInput{
 		ModelId:     aws.String(Llama3modelId),
 		ContentType: aws.String("application/json"),
-		Body:        wrapper.LlamaBody(prompt),
+		Body:        wrapper.LlamaBody(wrapper.prompt),
 	})
 
 	if err != nil {
@@ -56,17 +56,15 @@ func (wrapper ModelWrapper) InvokeLlama3Stream(prompt string) (*bedrockruntime.I
 	return output, nil
 }
 
-func (wrapper ModelWrapper) InvokeLlama3(prompt string) (string, error) {
-	modelId := "meta.llama3-70b-instruct-v1:0"
-
-	output, err := wrapper.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
-		ModelId:     aws.String(modelId),
+func (wrapper Llama) Invoke() (string, error) {
+	output, err := wrapper.bedrock.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
+		ModelId:     aws.String(Llama3modelId),
 		ContentType: aws.String("application/json"),
-		Body:        wrapper.LlamaBody(prompt),
+		Body:        wrapper.LlamaBody(wrapper.prompt),
 	})
 
 	if err != nil {
-		ProcessError(err, modelId)
+		ProcessError(err, Llama3modelId)
 	}
 
 	var response Llama3Response
@@ -77,36 +75,29 @@ func (wrapper ModelWrapper) InvokeLlama3(prompt string) (string, error) {
 	return response.Generation, nil
 }
 
-func ProcessLlamaStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Llama3Response, error) {
+func ProcessLlamaStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) error {
 
-	var combinedResult string
 	resp := Llama3Response{}
 
 	for event := range output.GetStream().Events() {
 		switch v := event.(type) {
 		case *types.ResponseStreamMemberChunk:
-
 			err := json.NewDecoder(bytes.NewReader(v.Value.Bytes)).Decode(&resp)
 			if err != nil {
-				return resp, err
+				return err
 			}
-
 			err = handler(context.Background(), []byte(resp.Generation))
-			if err != nil {
-				return resp, err
-			}
 
-			combinedResult += resp.GetContent()
+			if err != nil {
+				return err
+			}
 
 		case *types.UnknownUnionMember:
-			fmt.Println("unknown tag:", v.Tag)
+			return fmt.Errorf("unknown tag: %s", v.Tag)
 
 		default:
-			fmt.Println("union is nil or unknown type")
+			return fmt.Errorf("union is nil or unknown type")
 		}
 	}
-
-	resp.SetContent(combinedResult)
-	return resp, nil
-
+	return nil
 }
