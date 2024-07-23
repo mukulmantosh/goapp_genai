@@ -6,18 +6,26 @@ import (
 )
 
 const (
-	llama3        = "llama3"
-	anthropic     = "anthropic"
-	Llama3modelId = "meta.llama3-70b-instruct-v1:0"
+	llama3          = "llama3"
+	anthropic       = "anthropic"
+	Llama3modelId   = "meta.llama3-70b-instruct-v1:0"
+	claudeV3ModelID = "anthropic.claude-3-haiku-20240307-v1:0"
 )
 
 func CallStreamingOutputFunction(llm string, output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (interface{}, error) {
 	switch llm {
 	case llama3:
-		return ProcessLlamaStreamingOutput(output, handler)
+		err := ProcessLlamaStreamingOutput(output, handler)
+		if err != nil {
+			return nil, err
+		}
 	case anthropic:
-		return ProcessAnthropicStreamingOutput(output, handler)
+		err := ProcessAnthropicStreamingOutput(output, handler)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unknown llm value: %s", llm)
 	}
+	return nil, nil
 }

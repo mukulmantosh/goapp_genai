@@ -79,8 +79,6 @@ type Delta struct {
 	StopReason string `json:"stop_reason,omitempty"`
 }
 
-const claudeV3ModelID = "anthropic.claude-3-haiku-20240307-v1:0"
-
 const partialResponseTypeContentBlockDelta = "content_block_delta"
 const partialResponseTypeMessageStart = "message_start"
 const partialResponseTypeMessageDelta = "message_delta"
@@ -94,7 +92,7 @@ func (r Claude3Response) GetContent() string {
 	return r.ResponseContent[0].Text
 }
 
-func (wrapper ModelWrapper) AnthropicBody(prompt string) []byte {
+func (wrapper Anthropic) AnthropicBody(prompt string) []byte {
 	payload := Claude3Request{
 		AnthropicVersion: "bedrock-2023-05-31",
 		MaxTokens:        200,
@@ -118,10 +116,10 @@ func (wrapper ModelWrapper) AnthropicBody(prompt string) []byte {
 	return body
 }
 
-func (wrapper ModelWrapper) InvokeAnthropicStream(prompt string) (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
-	body := wrapper.AnthropicBody(prompt)
+func (wrapper Anthropic) Stream() (*bedrockruntime.InvokeModelWithResponseStreamOutput, error) {
+	body := wrapper.AnthropicBody(wrapper.prompt)
 
-	output, err := wrapper.BedrockRuntimeClient.InvokeModelWithResponseStream(context.TODO(), &bedrockruntime.InvokeModelWithResponseStreamInput{
+	output, err := wrapper.bedrock.BedrockRuntimeClient.InvokeModelWithResponseStream(context.TODO(), &bedrockruntime.InvokeModelWithResponseStreamInput{
 		ModelId:     aws.String(claudeV3ModelID),
 		ContentType: aws.String("application/json"),
 		Body:        body,
@@ -134,10 +132,10 @@ func (wrapper ModelWrapper) InvokeAnthropicStream(prompt string) (*bedrockruntim
 
 }
 
-func (wrapper ModelWrapper) InvokeAnthropic(prompt string) (string, error) {
-	body := wrapper.AnthropicBody(prompt)
+func (wrapper Anthropic) Invoke() (string, error) {
+	body := wrapper.AnthropicBody(wrapper.prompt)
 
-	output, err := wrapper.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
+	output, err := wrapper.bedrock.BedrockRuntimeClient.InvokeModel(context.TODO(), &bedrockruntime.InvokeModelInput{
 		ModelId:     aws.String(claudeV3ModelID),
 		ContentType: aws.String("application/json"),
 		Body:        body,
@@ -157,13 +155,13 @@ func (wrapper ModelWrapper) InvokeAnthropic(prompt string) (string, error) {
 	return resp.ResponseContent[0].Text, nil
 }
 
-func ProcessAnthropicStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (Claude3Response, error) {
+func ProcessAnthropicStreamingOutput(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) error {
 
 	var combinedResult string
 	resp := Claude3Response{
 		Type:            "message",
 		Role:            "assistant",
-		Model:           "claude-3-sonnet-28k-20240229",
+		Model:           claudeV3ModelID,
 		ResponseContent: []ResponseContent{{Type: contentTypeText}}}
 
 	for event := range output.GetStream().Events() {
@@ -173,7 +171,7 @@ func ProcessAnthropicStreamingOutput(output *bedrockruntime.InvokeModelWithRespo
 			var pr PartialResponse
 			err := json.NewDecoder(bytes.NewReader(v.Value.Bytes)).Decode(&pr)
 			if err != nil {
-				return resp, err
+				return err
 			}
 
 			if pr.Type == partialResponseTypeContentBlockDelta {
@@ -188,13 +186,11 @@ func ProcessAnthropicStreamingOutput(output *bedrockruntime.InvokeModelWithRespo
 			}
 
 		case *types.UnknownUnionMember:
-			fmt.Println("unknown tag:", v.Tag)
+			return fmt.Errorf("unknown tag: %s", v.Tag)
 
 		default:
-			fmt.Println("union is nil or unknown type")
+			return fmt.Errorf("union is nil or unknown type")
 		}
 	}
-
-	resp.SetContent(combinedResult)
-	return resp, nil
+	return nil
 }

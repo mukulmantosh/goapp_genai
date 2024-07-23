@@ -9,6 +9,21 @@ type ModelWrapper struct {
 	BedrockRuntimeClient *bedrockruntime.Client
 }
 
+type LLM interface {
+	Invoke() (string, error)
+	Stream() (*bedrockruntime.InvokeModelWithResponseStreamOutput, error)
+}
+
+type Llama struct {
+	bedrock ModelWrapper
+	prompt  string
+}
+
+type Anthropic struct {
+	bedrock ModelWrapper
+	prompt  string
+}
+
 type StreamingOutputHandler func(ctx context.Context, part []byte) error
 
 type ProcessingFunction func(output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (any, error)
