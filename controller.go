@@ -37,7 +37,7 @@ func (m MLWrapper) executeModel(w http.ResponseWriter, r *http.Request) {
 				return nil
 			}
 
-			_, err = models.CallStreamingOutputFunction(modelName, aiResponse, processFunc)
+			err = models.CallStreamingOutputFunction(modelName, aiResponse, processFunc)
 			if err != nil {
 				log.Fatal("streaming output processing error: ", err)
 			}

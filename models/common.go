@@ -12,20 +12,20 @@ const (
 	claudeV3ModelID = "anthropic.claude-3-haiku-20240307-v1:0"
 )
 
-func CallStreamingOutputFunction(llm string, output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) (interface{}, error) {
+func CallStreamingOutputFunction(llm string, output *bedrockruntime.InvokeModelWithResponseStreamOutput, handler StreamingOutputHandler) error {
 	switch llm {
 	case llama3:
 		err := ProcessLlamaStreamingOutput(output, handler)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	case anthropic:
 		err := ProcessAnthropicStreamingOutput(output, handler)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	default:
-		return nil, fmt.Errorf("unknown llm value: %s", llm)
+		return fmt.Errorf("unknown llm value: %s", llm)
 	}
-	return nil, nil
+	return nil
 }
