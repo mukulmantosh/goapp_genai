@@ -1,5 +1,6 @@
 # AWS Bedrock with Go
 
+![background](./misc/images/background.png)
 This tutorial centers around developing a Go application for interfacing with AWS Bedrock, utilizing models such as Llama3 and Anthropic Claude.
 
 ### Prerequisites
