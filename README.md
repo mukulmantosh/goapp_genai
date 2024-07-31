@@ -11,5 +11,6 @@ Before starting up this project, make sure you have the necessary dependencies i
 
 - [x] [Go](https://go.dev/) - Go is an open source programming language that makes it simple to build secure, scalable systems.
 
+- [x] [GoLand](https://www.jetbrains.com/go/) - More than just a Go IDE
 
 
