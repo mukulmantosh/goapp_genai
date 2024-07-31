@@ -14,3 +14,7 @@ Before starting up this project, make sure you have the necessary dependencies i
 - [x] [GoLand](https://www.jetbrains.com/go/) - More than just a Go IDE
 
 
+
+### Tutorial
+
+You can follow the tutorial step by step by clicking on this link -> [AI Assistant with AWS Bedrock and Go](https://www.jetbrains.com/guide/go/tutorials/bedrock_with_go/)
